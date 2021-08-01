@@ -1,0 +1,97 @@
+Classfile /home/intent/git/intent/jdk11/learn/src/test/java/cool/intent/java/lang/classloader/ClassInitTest.class
+  Last modified 2021-7-27; size 589 bytes
+  MD5 checksum 78ebe4268682780330e1f14605c7bfcc
+  Compiled from "ClassInitTest.java"
+public class cool.intent.java.lang.classloader.ClassInitTest
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #7.#20         // java/lang/Object."<init>":()V
+   #2 = Fieldref           #21.#22        // java/lang/System.out:Ljava/io/PrintStream;
+   #3 = Fieldref           #6.#23         // cool/intent/java/lang/classloader/ClassInitTest.num:I
+   #4 = Methodref          #24.#25        // java/io/PrintStream.println:(I)V
+   #5 = Fieldref           #6.#26         // cool/intent/java/lang/classloader/ClassInitTest.num2:I
+   #6 = Class              #27            // cool/intent/java/lang/classloader/ClassInitTest
+   #7 = Class              #28            // java/lang/Object
+   #8 = Utf8               num
+   #9 = Utf8               I
+  #10 = Utf8               num2
+  #11 = Utf8               <init>
+  #12 = Utf8               ()V
+  #13 = Utf8               Code
+  #14 = Utf8               LineNumberTable
+  #15 = Utf8               main
+  #16 = Utf8               ([Ljava/lang/String;)V
+  #17 = Utf8               <clinit>
+  #18 = Utf8               SourceFile
+  #19 = Utf8               ClassInitTest.java
+  #20 = NameAndType        #11:#12        // "<init>":()V
+  #21 = Class              #29            // java/lang/System
+  #22 = NameAndType        #30:#31        // out:Ljava/io/PrintStream;
+  #23 = NameAndType        #8:#9          // num:I
+  #24 = Class              #32            // java/io/PrintStream
+  #25 = NameAndType        #33:#34        // println:(I)V
+  #26 = NameAndType        #10:#9         // num2:I
+  #27 = Utf8               cool/intent/java/lang/classloader/ClassInitTest
+  #28 = Utf8               java/lang/Object
+  #29 = Utf8               java/lang/System
+  #30 = Utf8               out
+  #31 = Utf8               Ljava/io/PrintStream;
+  #32 = Utf8               java/io/PrintStream
+  #33 = Utf8               println
+  #34 = Utf8               (I)V
+{
+  public cool.intent.java.lang.classloader.ClassInitTest();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 15: 0
+
+  public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=2, locals=1, args_size=1
+         0: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+         3: getstatic     #3                  // Field num:I
+         6: invokevirtual #4                  // Method java/io/PrintStream.println:(I)V
+         9: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        12: getstatic     #5                  // Field num2:I
+        15: invokevirtual #4                  // Method java/io/PrintStream.println:(I)V
+        18: return
+      LineNumberTable:
+        line 29: 0
+        line 30: 9
+        line 31: 18
+
+  static {};
+    descriptor: ()V
+    flags: ACC_STATIC
+    Code:
+      stack=2, locals=0, args_size=0
+         0: iconst_1
+         1: putstatic     #3                  // Field num:I
+         4: iconst_2
+         5: putstatic     #3                  // Field num:I
+         8: iconst_2
+         9: putstatic     #5                  // Field num2:I
+        12: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        15: getstatic     #3                  // Field num:I
+        18: invokevirtual #4                  // Method java/io/PrintStream.println:(I)V
+        21: iconst_1
+        22: putstatic     #5                  // Field num2:I
+        25: return
+      LineNumberTable:
+        line 16: 0
+        line 19: 4
+        line 20: 8
+        line 21: 12
+        line 26: 21
+}
+SourceFile: "ClassInitTest.java"
