@@ -1008,62 +1008,72 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
 
     /** Implementation for put and putIfAbsent */
     final V putVal(K key, V value, boolean onlyIfAbsent) {
+        // key和value都不能为空，和HashMap的区别
         if (key == null || value == null) throw new NullPointerException();
+        // 计算hash
         int hash = spread(key.hashCode());
         int binCount = 0;
-        for (Node<K,V>[] tab = table;;) {
-            Node<K,V> f; int n, i, fh; K fk; V fv;
-            if (tab == null || (n = tab.length) == 0)
+        // 死循环
+        for (Node<K, V>[] tab = table; ; ) {
+            Node<K, V> f;
+            int n, i, fh;
+            K fk;
+            V fv;
+            if (tab == null || (n = tab.length) == 0) {
+                // 初始化
                 tab = initTable();
-            else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
-                if (casTabAt(tab, i, null, new Node<K,V>(hash, key, value)))
+            } else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
+                // 设置对象的值并跳出循环
+                if (casTabAt(tab, i, null, new Node<K, V>(hash, key, value)))
                     break;                   // no lock when adding to empty bin
-            }
-            else if ((fh = f.hash) == MOVED)
+            } else if ((fh = f.hash) == MOVED) {
+                // 如果f的hash值为-1，说明当前f是ForwardingNode节点，意味有其它线程正在扩容，则一起进行扩容操作。
                 tab = helpTransfer(tab, f);
-            else if (onlyIfAbsent // check first node without acquiring lock
-                     && fh == hash
-                     && ((fk = f.key) == key || (fk != null && key.equals(fk)))
-                     && (fv = f.val) != null)
+            } else if (onlyIfAbsent // check first node without acquiring lock
+                    && fh == hash
+                    && ((fk = f.key) == key || (fk != null && key.equals(fk)))
+                    && (fv = f.val) != null)
                 return fv;
             else {
                 V oldVal = null;
+                // 其余情况把新的Node节点按链表或红黑树的方式插入到合适的位置，这个过程采用同步内置锁实现并发
                 synchronized (f) {
                     if (tabAt(tab, i) == f) {
+                        // 如果f.hash >= 0，说明f是链表结构的头结点，遍历链表，如果找到对应的node节点，则修改value，否则在链表尾部加入节点。
                         if (fh >= 0) {
                             binCount = 1;
-                            for (Node<K,V> e = f;; ++binCount) {
+                            for (Node<K, V> e = f; ; ++binCount) {
                                 K ek;
                                 if (e.hash == hash &&
-                                    ((ek = e.key) == key ||
-                                     (ek != null && key.equals(ek)))) {
+                                        ((ek = e.key) == key ||
+                                                (ek != null && key.equals(ek)))) {
                                     oldVal = e.val;
                                     if (!onlyIfAbsent)
                                         e.val = value;
                                     break;
                                 }
-                                Node<K,V> pred = e;
+                                Node<K, V> pred = e;
                                 if ((e = e.next) == null) {
-                                    pred.next = new Node<K,V>(hash, key, value);
+                                    pred.next = new Node<K, V>(hash, key, value);
                                     break;
                                 }
                             }
-                        }
-                        else if (f instanceof TreeBin) {
-                            Node<K,V> p;
+                        } else if (f instanceof TreeBin) {
+                            // 如果f是TreeBin类型节点，说明f是红黑树根节点，则在树结构上遍历元素，更新或增加节点。
+                            Node<K, V> p;
                             binCount = 2;
-                            if ((p = ((TreeBin<K,V>)f).putTreeVal(hash, key,
-                                                           value)) != null) {
+                            if ((p = ((TreeBin<K, V>) f).putTreeVal(hash, key,
+                                    value)) != null) {
                                 oldVal = p.val;
                                 if (!onlyIfAbsent)
                                     p.val = value;
                             }
-                        }
-                        else if (f instanceof ReservationNode)
+                        } else if (f instanceof ReservationNode)
                             throw new IllegalStateException("Recursive update");
                     }
                 }
                 if (binCount != 0) {
+                    // 如果链表中节点数binCount >= TREEIFY_THRESHOLD(默认是8)，则把链表转化为红黑树结构。
                     if (binCount >= TREEIFY_THRESHOLD)
                         treeifyBin(tab, i);
                     if (oldVal != null)

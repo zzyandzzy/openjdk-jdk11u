@@ -378,18 +378,36 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * below).
      */
     private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
+    // 29
     private static final int COUNT_BITS = Integer.SIZE - 3;
+    // (1 << 29) - 1 = 536870911 = 0001 1111 1111 1111  1111 1111 1111 1111
     private static final int COUNT_MASK = (1 << COUNT_BITS) - 1;
 
     // runState is stored in the high-order bits
-    private static final int RUNNING    = -1 << COUNT_BITS;
-    private static final int SHUTDOWN   =  0 << COUNT_BITS;
-    private static final int STOP       =  1 << COUNT_BITS;
-    private static final int TIDYING    =  2 << COUNT_BITS;
-    private static final int TERMINATED =  3 << COUNT_BITS;
+    // -1 << 29 = -536870912 = 1010 0000 0000 0000  0000 0000 0000 0000
+    private static final int RUNNING = -1 << COUNT_BITS;
+    // 0 << 29 = 29 = 0001 1101
+    private static final int SHUTDOWN = 0 << COUNT_BITS;
+    // 1 << 29 = 0010 0000 0000 0000  0000 0000 0000 0000
+    private static final int STOP = 1 << COUNT_BITS;
+    // 2 << 29 = 0100 0000 0000 0000  0000 0000 0000 0000
+    private static final int TIDYING = 2 << COUNT_BITS;
+    // 3 << 29 = 0110 0000 0000 0000  0000 0000 0000 0000
+    private static final int TERMINATED = 3 << COUNT_BITS;
 
     // Packing and unpacking ctl
     private static int runStateOf(int c)     { return c & ~COUNT_MASK; }
+    /**
+     * c和
+     * COUNT_MASK = 0001 1111 1111 1111  1111 1111 1111 1111
+     * 进行与运算
+     * 可以看出COUNT_MASK的规律，因为任何二进制位和1进行与运算都是本身
+     * 所以猜测这里c和COUNT_MASK与运算还是原来的数（😏）。
+     * 只有一个线程时，c为-536870911，-536870911 & 536870911 = 1
+     *
+     * @param c
+     * @return
+     */
     private static int workerCountOf(int c)  { return c & COUNT_MASK; }
     private static int ctlOf(int rs, int wc) { return rs | wc; }
 
@@ -893,6 +911,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 return false;
 
             for (;;) {
+                // 这里workerCountOf计算当前运行的线程数
+                // 如果是核心线程并且大于或等于corePoolSize，返回失败
+                // 如果是非核心线程并且大于或等于maximumPoolSize，返回失败
                 if (workerCountOf(c)
                     >= ((core ? corePoolSize : maximumPoolSize) & COUNT_MASK))
                     return false;
@@ -1293,11 +1314,18 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             throw new IllegalArgumentException();
         if (workQueue == null || threadFactory == null || handler == null)
             throw new NullPointerException();
+        // 参数最多的方法（7个😂😏）
+        // 核心线程数
         this.corePoolSize = corePoolSize;
+        // 最大线程数
         this.maximumPoolSize = maximumPoolSize;
+        // 工作队列
         this.workQueue = workQueue;
+        // 保火时间
         this.keepAliveTime = unit.toNanos(keepAliveTime);
+        // 线程工厂
         this.threadFactory = threadFactory;
+        // 失败策略
         this.handler = handler;
     }
 
@@ -1344,15 +1372,17 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 return;
             c = ctl.get();
         }
+        // 尝试添加到队列
         if (isRunning(c) && workQueue.offer(command)) {
+            // 再检查线程池有没有被结束，被结束了直接走拒绝策略
             int recheck = ctl.get();
-            if (! isRunning(recheck) && remove(command))
+            if (!isRunning(recheck) && remove(command))
                 reject(command);
             else if (workerCountOf(recheck) == 0)
                 addWorker(null, false);
-        }
-        else if (!addWorker(command, false))
+        } else if (!addWorker(command, false)) {// addWorker 开启并运行一个非核心线程
             reject(command);
+        }
     }
 
     /**
