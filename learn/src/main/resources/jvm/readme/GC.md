@@ -42,6 +42,35 @@ Serial Old在Server模式下主要有两个用途：
 
 在用户的桌面应用场景中，可用内存一般不大（几十MB至一两百MB）可以在较短时问内完成垃圾收集（几十ms至一百多ms），只要不频繁发生，使用串行回收器是可以接受的。
 
-在Hotspot虚拟机中，使用 -xx:tuseserialGc 参数可以指定年轻代和老年代都使用串行收集器。
+在Hotspot虚拟机中，使用 -xx:UseSerialGC参数可以指定年轻代和老年代都使用串行收集器。
 
 - 等价于 新生代用Serial GC，且老年代用Serial Old GC
+
+## ParNew GC：并行回收
+
+- [测试用例](../../../../../src/test/java/cool/intent/jvm/gc/ParNewGCTest.java)
+
+如果说Serial Gc是年轻代中的单线程垃圾收集器，那么ParNew收集器则是Serial收集器的多线程版本。
+
+- Par是Parallel的缩写，New：只能处理的是新生代
+
+ParNew 收集器除了采用并行回收的方式执行内存回收外，两款垃圾收集器之间几乎没有任何区别。ParNew收集器在年轻代中同样也是采用复制算法、"Stop-The-World"机制。
+
+ParNew 是很多JVM运行在Server模式下新生代的默认垃圾收集器。
+
+![GC_Serial](static/uml/GC_Parallel.svg)
+
+- 对于新生代，回收次数频繁，使用并行方式高效。
+- 对于老年代，回收次数少，使用串行方式节省资源。（CPU并行需要切换线程，串行可以节省切换线程的资源）
+
+由于ParNew收集器是基于并行回收，那么是否可以断定ParNew收集器的回收效率在任何场景下都会比Serial收集器更高效？
+
+ParNew 收集器运行在多CPU的环境下，由于可以充分利用多CPU、多核心等物理硬件资源优势，可以更快速地完成垃圾收集，提升程序的吞吐量。
+
+但是在单个CPU的环境下，ParNew收集器不比Serial收集器更高效。虽然serial收集器是基于串行回收，但是由于CPU不需要频繁地做任务切换，因此可以有效避免多线程交互过程中产生的一些额外开销。
+
+因为除Serial外，目前只有ParNew GC能与CMS GC组合工作。
+
+在程序中，开发人员可以通过选项"-XX:+UseParNewGC"手动指定使用ParNew收集器执行内存回收任务。它表示年轻代使用并行收集器，不影响老年代。
+
+-XX:ParallelGCThreads 限制线程数量，默认开启和CPU数据相同的线程数。
