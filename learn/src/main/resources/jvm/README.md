@@ -3,6 +3,7 @@
 - [程序计数器](readme/JVMPC.md)
 - [虚拟机栈](readme/JVMStack.md)
 - [GC算法](readme/GC-Algorithm.md)
+- [GC回收器](readme/GC.md)
 
 ## 结构图
 
